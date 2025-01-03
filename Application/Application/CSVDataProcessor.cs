@@ -3,13 +3,14 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
 using System.Data;
+using System.Text;
 
 namespace Application;
 
 internal static class CSVDataProcessor
 {
     private static StreamReader reader;
-
+    private static string header;
     internal static void OpenCSV(string path)
     {
         if (!File.Exists(path))
@@ -38,9 +39,11 @@ internal static class CSVDataProcessor
         dataTable.Columns.Add("fare_amount", typeof(decimal));
         dataTable.Columns.Add("tip_amount", typeof(decimal));
 
+        header = "tpep_pickup_datetime,tpep_dropoff_datetime,passenger_count,trip_distance,store_and_fwd_flag,PULocationID,DOLocationID,fare_amount,tip_amount";
+
         using (var reader = new StreamReader(filePath))
         {
-            string[] headers = reader.ReadLine().Split(',');
+            reader.ReadLine();
 
             while (!reader.EndOfStream)
             {
@@ -63,19 +66,21 @@ internal static class CSVDataProcessor
 
         return dataTable;
     }
-    static void WriteDuplicatesToCsv(List<Trip> duplicates, string filePath)
+    internal static void WriteTripsToCsv(List<Trip> duplicates, string filePath)
     {
+        if (!File.Exists(filePath))
+        {
+            File.Create(filePath);
+        }
         using (var writer = new StreamWriter(filePath))
         {
-            // Write header
-            writer.WriteLine("PickupDatetime,DropoffDatetime,PassengerCount,OtherFields...");
-
+            writer.WriteLine(header);
             // Write duplicate records
             foreach (var duplicate in duplicates)
             {
-                writer.WriteLine($"{duplicate.TpepPickupDatetime},{duplicate.TpepDropoffDatetime},{duplicate.PassengerCount},...");
+                writer.WriteLine(duplicate.ToString());
             }
         }
     }
-   
+
 }

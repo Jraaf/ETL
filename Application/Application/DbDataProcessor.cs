@@ -31,7 +31,12 @@ internal class DbDataProcessor
 
         Console.WriteLine("Data imported successfully!");
     }
-    internal static List<Trip> GetDublicates(EtlContext context)
+    /// <summary>
+    /// Removes all the dublicates
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns>All the removed dublicates</returns>
+    internal static List<Trip> RemoveDublicates(EtlContext context)
     {
         var distinctRecords = context.Trips
             .GroupBy(x => new
@@ -42,11 +47,13 @@ internal class DbDataProcessor
             })
             .Select(g => g.First().Id)
             .ToList();
-
+        
         var duplicateRecords = context.Trips
             .Where(x => !distinctRecords.Contains(x.Id))
             .ToList();
 
+        context.Trips.RemoveRange(duplicateRecords);
+        context.SaveChanges();
         return duplicateRecords;
     }
     internal static void HighestAverageTip(EtlContext context)

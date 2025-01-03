@@ -24,4 +24,9 @@ public partial class Trip
     public decimal? FareAmount { get; set; }
 
     public decimal? TipAmount { get; set; }
+
+    public override string ToString()
+    {
+        return $"{TpepPickupDatetime},{TpepDropoffDatetime},{PassengerCount},{TripDistance},{StoreAndFwdFlag},{PulocationId},{DolocationId},{FareAmount},{TipAmount}";
+    }
 }
