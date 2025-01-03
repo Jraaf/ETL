@@ -69,7 +69,6 @@ internal class DbDataProcessor
                .FirstOrDefault();
 
         Console.WriteLine($"Highest Avg Tip Amount: PULocationID = {highestAvgTip?.PulocationId}, AvgTipAmount = {highestAvgTip?.AvgTipAmount}");
-
     }
 
     internal static void Top100LongestFairsInDistance(EtlContext context)
