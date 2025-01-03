@@ -13,5 +13,5 @@ var dataContext = new EtlContext();
 
 
 
-//var csv = CSVDataProcessor.LoadCsvWithSelectedColumns(path);
-//CSVDataProcessor.WriteToDatabase(connectionString, tableName, csv);
+var csv = CSVDataProcessor.LoadCsvWithSelectedColumns(path);
+DbDataProcessor.WriteToDatabase(connectionString, tableName, csv);

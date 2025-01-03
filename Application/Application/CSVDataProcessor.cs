@@ -1,4 +1,7 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Application.Data;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
 using System.Data;
 
 namespace Application;
@@ -44,15 +47,15 @@ internal static class CSVDataProcessor
                 string[] row = reader.ReadLine().Split(',');
                 DataRow dataRow = dataTable.NewRow();
 
-                dataRow["tpep_pickup_datetime"] = DateTime.Parse(row[1]);
-                dataRow["tpep_dropoff_datetime"] = DateTime.Parse(row[2]);
-                dataRow["passenger_count"] = string.IsNullOrWhiteSpace(row[3]) ? 0 : int.Parse(row[3]);
-                dataRow["trip_distance"] = double.Parse(row[4]);
+                dataRow["tpep_pickup_datetime"] = DateTime.Parse(row[1].Trim()).ToUniversalTime();
+                dataRow["tpep_dropoff_datetime"] = DateTime.Parse(row[2].Trim()).ToUniversalTime();
+                dataRow["passenger_count"] = string.IsNullOrWhiteSpace(row[3].Trim()) ? 0 : int.Parse(row[3].Trim());
+                dataRow["trip_distance"] = double.Parse(row[4].Trim());
                 dataRow["store_and_fwd_flag"] = row[6] == "N" ? "No" : "Yes";
-                dataRow["PULocationID"] = int.Parse(row[7]);
-                dataRow["DOLocationID"] = int.Parse(row[8]);
-                dataRow["fare_amount"] = decimal.Parse(row[10]);
-                dataRow["tip_amount"] = decimal.Parse(row[13]);
+                dataRow["PULocationID"] = int.Parse(row[7].Trim());
+                dataRow["DOLocationID"] = int.Parse(row[8].Trim());
+                dataRow["fare_amount"] = decimal.Parse(row[10].Trim());
+                dataRow["tip_amount"] = decimal.Parse(row[13].Trim());
 
                 dataTable.Rows.Add(dataRow);
             }
@@ -60,32 +63,19 @@ internal static class CSVDataProcessor
 
         return dataTable;
     }
-
-    internal static void WriteToDatabase(string connectionString, string tableName, DataTable dataTable)
+    static void WriteDuplicatesToCsv(List<Trip> duplicates, string filePath)
     {
-        using (SqlConnection connection = new SqlConnection(connectionString))
+        using (var writer = new StreamWriter(filePath))
         {
-            connection.Open();
+            // Write header
+            writer.WriteLine("PickupDatetime,DropoffDatetime,PassengerCount,OtherFields...");
 
-            using (SqlBulkCopy bulkCopy = new SqlBulkCopy(connection))
+            // Write duplicate records
+            foreach (var duplicate in duplicates)
             {
-                bulkCopy.DestinationTableName = tableName;
-                bulkCopy.ColumnMappings.Add("tpep_pickup_datetime", "tpep_pickup_datetime");
-                bulkCopy.ColumnMappings.Add("tpep_dropoff_datetime", "tpep_dropoff_datetime");
-                bulkCopy.ColumnMappings.Add("passenger_count", "passenger_count");
-                bulkCopy.ColumnMappings.Add("trip_distance", "trip_distance");
-                bulkCopy.ColumnMappings.Add("store_and_fwd_flag", "store_and_fwd_flag");
-                bulkCopy.ColumnMappings.Add("PULocationID", "PULocationID");
-                bulkCopy.ColumnMappings.Add("DOLocationID", "DOLocationID");
-                bulkCopy.ColumnMappings.Add("fare_amount", "fare_amount");
-                bulkCopy.ColumnMappings.Add("tip_amount", "tip_amount");
-
-                bulkCopy.WriteToServer(dataTable);
+                writer.WriteLine($"{duplicate.TpepPickupDatetime},{duplicate.TpepDropoffDatetime},{duplicate.PassengerCount},...");
             }
         }
-
-        Console.WriteLine("Data imported successfully!");
     }
-
-    internal
+   
 }
